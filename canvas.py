@@ -90,8 +90,11 @@ class Canvas:
         right_evaluation = bool()
         previous_value = ""
         for i in range(3):
-            if previous_value is "":
+            if previous_value == "":
                 previous_value = self.grid[i][i]
+                if previous_value is None:
+                    right_evaluation = False
+                    break
             elif previous_value is self.grid[i][i]:
                 right_evaluation = True
             else:
@@ -104,18 +107,47 @@ class Canvas:
         previous_value = ""
         n = 2
         for i in range(n + 1):
-            if previous_value is "":
+            if previous_value == "":
                 previous_value = self.grid[i][abs(i - n)]
-            elif previous_value is self.grid[i][abs(i-n)]:
+                if previous_value is None:
+                    left_evaluation = False
+                    break
+            elif previous_value is self.grid[i][abs(i - n)]:
                 left_evaluation = True
-                previous_value = self.grid[i][abs(i-n)]
+                previous_value = self.grid[i][abs(i - n)]
             else:
                 left_evaluation = False
                 break
         return left_evaluation
 
-    def check_win(self):
-        diagonal = self.check_left_diagonal_win() or self.check_right_diagonal_win()
-        self.is_complete = diagonal
-        return diagonal
+    def check_horizontal_win(self):
+        horizontal_eval = bool()
+        cols = 0
+        for i in range(len(self.rows)):
+            if self.grid[i][cols] == self.grid[i][cols - 1] == self.grid[i][cols - 2]\
+                    and (self.grid[i][cols] is not None):
+                horizontal_eval = True
+                print("Horizontal is True")
+        cols += 1
+        return horizontal_eval
 
+    def check_vertical_win(self):
+        vertical_eval = bool()
+        row = 0
+        for i in range(len(self.columns)):
+            if self.grid[row][i] == self.grid[row-1][i] == self.grid[row-2][i]\
+                    and (self.grid[row][i] is not None):
+                vertical_eval = True
+                print("Vertical Is True")
+            row += 1
+        return vertical_eval
+
+    def check_win(self):
+        win = (
+                self.check_left_diagonal_win() or
+                self.check_right_diagonal_win() or
+                self.check_vertical_win() or
+                self.check_horizontal_win()
+        )
+        self.is_complete = win
+        return win
