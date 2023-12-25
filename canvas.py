@@ -22,6 +22,7 @@ class Canvas:
             "C2": self.grid[2][1],
             "C3": self.grid[2][2]
         }
+        self.winner = str()
 
     def __str__(self):
         cnv = f"""
@@ -100,6 +101,8 @@ class Canvas:
             else:
                 right_evaluation = False
                 break
+        if right_evaluation:
+            self.winner = previous_value
         return right_evaluation
 
     def check_left_diagonal_win(self):
@@ -118,36 +121,59 @@ class Canvas:
             else:
                 left_evaluation = False
                 break
+        if left_evaluation:
+            self.winner = previous_value
         return left_evaluation
 
     def check_horizontal_win(self):
         horizontal_eval = bool()
-        cols = 0
-        for i in range(len(self.rows)):
-            if self.grid[i][cols] == self.grid[i][cols - 1] == self.grid[i][cols - 2]\
-                    and (self.grid[i][cols] is not None):
-                horizontal_eval = True
-                print("Horizontal is True")
-        cols += 1
+        for row in range(len(self.rows)):
+            pivot_comparator = None
+            for col in range(len(self.columns)):
+                if self.grid[row][col]  is None:
+                    horizontal_eval = False
+                    break
+                elif pivot_comparator is None:
+                    pivot_comparator = self.grid[row][col]
+                    continue
+                if pivot_comparator == self.grid[row][col]:
+                    horizontal_eval = True
+                    pivot_comparator = self.grid[row][col]
+                else:
+                    horizontal_eval = False
+                    break
+            if horizontal_eval is True:
+                self.winner = pivot_comparator
+                break
+        print(f"horizontal check : {horizontal_eval}")
         return horizontal_eval
 
     def check_vertical_win(self):
         vertical_eval = bool()
-        row = 0
-        for i in range(len(self.columns)):
-            if self.grid[row][i] == self.grid[row-1][i] == self.grid[row-2][i]\
-                    and (self.grid[row][i] is not None):
-                vertical_eval = True
-                print("Vertical Is True")
-            row += 1
+        for col in range(len(self.columns)):
+            pivot_comparator = None
+            for row in range(len(self.rows)):
+                if self.grid[row][col] is None:
+                    vertical_eval = False
+                    break
+                elif pivot_comparator is None:
+                    pivot_comparator = self.grid[row][col]
+                    continue
+                if pivot_comparator == self.grid[row][col]:
+                    vertical_eval = True
+                    pivot_comparator = self.grid[row][col]
+                else:
+                    vertical_eval = False
+                    break
+            if vertical_eval is True:
+                self.winner = pivot_comparator
+                break
+        print(f"vertical check : {vertical_eval}")
         return vertical_eval
 
     def check_win(self):
-        win = (
-                self.check_left_diagonal_win() or
-                self.check_right_diagonal_win() or
-                self.check_vertical_win() or
-                self.check_horizontal_win()
-        )
-        self.is_complete = win
-        return win
+        self.is_complete = True if (self.check_left_diagonal_win() or
+                                    self.check_right_diagonal_win() or
+                                    self.check_vertical_win() or
+                                    self.check_horizontal_win()
+                                    ) else False

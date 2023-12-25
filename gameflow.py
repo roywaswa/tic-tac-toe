@@ -34,6 +34,9 @@ def game_controls():
 
 def tic_tac_toe(x: Player, o: Player):
     # TIC-TAC-TOE
+    print(f"""
+    {x} vs \n{o}
+    """)
     canvas = Canvas()
     rounds = int(1)
     while canvas.is_complete is False:
@@ -42,15 +45,20 @@ def tic_tac_toe(x: Player, o: Player):
         o_valid = True
         while x_valid:
             x_valid = not canvas.update_values(x, x.play())
-            if canvas.check_win():
-                print("We have a winner")
+            canvas.check_win()
         if canvas.is_complete:
             break
         while o_valid:
             o_valid = not canvas.update_values(o, o.play())
-            if canvas.check_win():
-                print("We have a winner")
+            canvas.check_win()
         if canvas.is_complete:
             break
         rounds += 1
+    if canvas.winner == x.symbol:
+        x.score += 1
+        print(f"WINNER: {x}")
+    if canvas.winner == o.symbol:
+        o.score += 1
+        print(f"WINNER: {x}")
+
 
