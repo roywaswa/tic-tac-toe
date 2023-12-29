@@ -24,13 +24,6 @@ def create_profiles() -> list[Player]:
     return [player_x, player_o]
 
 
-def game_controls():
-    print("""
-    GAME CONTROLS
-    [=q] : QUIT GAME
-    [=f] : FOREFEIT GAME
-    """)
-
 
 def tic_tac_toe(x: Player, o: Player):
     # TIC-TAC-TOE
