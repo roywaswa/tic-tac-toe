@@ -17,7 +17,6 @@ class TestUserModel:
 
     def teardown_method(self, method):
         print(f"\nTear Down Method:\n{method}")
-
         del self.user_methods
 
     def test_registration(self):

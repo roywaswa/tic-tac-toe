@@ -34,6 +34,7 @@ class UserDBMethods:
 
     def __init__(self, orm_engine):
         self.session = sessionmaker(bind=orm_engine)()
+        Base.metadata.create_all(bind=orm_engine)
 
     def get_user(self, username):
         return self.session.query(User).filter_by(username=username).first()
