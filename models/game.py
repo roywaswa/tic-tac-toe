@@ -1,10 +1,40 @@
-from abstract_classes import Observable, Observer
-
+from models.abstract_classes import Observable, Observer
 
 class Game(Observable):
 
     def __init__(self):
         self.observers = []
+        self.grid_reference = ["A1", "A2", "A3", "B1", "B2", "B3", "C1", "C2", "C3"]
+        self.grid = [
+            [None, None, None],
+            [None, None, None],
+            [None, None, None],
+        ]
+
+    def check_validity(self, position: str):
+        # todo: check if the move is in the list of valid reference
+        if position not in self.grid_reference:
+            return {"position": None, "is_valid": False}
+        # todo: Convert the position to row and col
+        position = list(position)
+        row, column = position[0], position[1]
+        row = ["A", "B", "C"].index(row)
+        col = ["1", "2", "3"].index(column)
+        # todo: Check if the specific reference has a value
+        if self.grid[row][col] is not None:
+            return {
+                "position": None,
+                "is_valid": False
+            }
+        # todo: Return position in terms of row and col
+        return {
+            "position": (row, col),
+            "is_valid": True
+        }
+
+    def update_grid(self, position: tuple[int, int], mark: str):
+        self.grid[position[0]][position[1]] = mark
+        self.update_observers(grid=self.grid)
 
     def register_observer(self, observer: Observer):
         if observer not in self.observers:
@@ -22,9 +52,20 @@ class Evaluator(Observer):
         self.is_done = False
 
     def update(self, *args, **kwargs):
-        print(f"An Update has been sent: \n {args} \n {kwargs}")
+        grid = kwargs["grid"] if kwargs["grid"] else list()
+        if len(grid) >= 1:
+            self.grid = grid
+        if (
+                self.__check_right_diagonal_win() or
+                self.__check_left_diagonal_win() or
+                self.__check_vertical_win() or
+                self.__check_horizontal_win()
+        ):
+            self.is_done = True
+            raise Exception("Game is Done!!!")
+        print(f"An Update has been sent: \n {grid}")
 
-    def check_right_diagonal_win(self):
+    def __check_right_diagonal_win(self):
         right_evaluation = bool()
         previous_value = ""
         for i in range(3):
@@ -38,11 +79,9 @@ class Evaluator(Observer):
             else:
                 right_evaluation = False
                 break
-        if right_evaluation:
-            self.winner = previous_value
         return right_evaluation
 
-    def check_left_diagonal_win(self):
+    def __check_left_diagonal_win(self):
         left_evaluation = bool()
         previous_value = ""
         n = 2
@@ -58,15 +97,13 @@ class Evaluator(Observer):
             else:
                 left_evaluation = False
                 break
-        if left_evaluation:
-            self.winner = previous_value
         return left_evaluation
 
-    def check_horizontal_win(self):
+    def __check_horizontal_win(self):
         horizontal_eval = bool()
-        for row in range(len(self.rows)):
+        for row in range(3):
             pivot_comparator = None
-            for col in range(len(self.columns)):
+            for col in range(3):
                 if self.grid[row][col] is None:
                     horizontal_eval = False
                     break
@@ -80,16 +117,14 @@ class Evaluator(Observer):
                     horizontal_eval = False
                     break
             if horizontal_eval is True:
-                self.winner = pivot_comparator
                 break
-        print(f"horizontal check : {horizontal_eval}")
         return horizontal_eval
 
-    def check_vertical_win(self):
+    def __check_vertical_win(self):
         vertical_eval = bool()
-        for col in range(len(self.columns)):
+        for col in range(3):
             pivot_comparator = None
-            for row in range(len(self.rows)):
+            for row in range(3):
                 if self.grid[row][col] is None:
                     vertical_eval = False
                     break

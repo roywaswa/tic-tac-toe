@@ -1,6 +1,9 @@
 import enum
-from classes.game import Game, Evaluator
-from classes.player import Profile, User, Player, Mark
+
+from models.game import Game, Evaluator
+from models.user import UserDBMethods
+from utility.db import engine
+from models.player import Player
 
 
 class Commands(enum.Enum):
@@ -33,24 +36,28 @@ def handle_command(command: str):
         raise ValueError("Invalid Command")
 
 
-def create_new_profile() -> Profile:
-    new_profile = Profile(
-        name=user_input("Name: ")
+def create_new_profile(user_methods: UserDBMethods) -> Player:
+    new_user = user_methods.register_user(
+        username=user_input("Username: "),
+        password=user_input("Password: ")
     )
-    new_user = User()
-    new_user.register_user(new_profile, user_input("Password: "))
-    return new_profile
+    player = Player(new_user)
+    return player
 
 
-def select_profile() -> Profile:
-    user = User()
-    user.get_user(user_input("Username: "), user_input("Password: "))
-    return user.profile
+def select_profile(user_methods: UserDBMethods) -> Player:
+    user = user_methods.get_user(
+        user_input("Username: ")
+    )
+    player = Player(user)
+    return player
 
 
-def assign_player_marks(player_profiles: [Profile]):
-    player_x = Player(Mark.X.value, player_profiles[0])
-    player_o = Player(Mark.O.value, player_profiles[0])
+def assign_player_marks(player_profiles: list[Player]) -> tuple[Player, Player]:
+    player_x = player_profiles[0]
+    player_o = player_profiles[1]
+    player_x.mark = "X"
+    player_o.mark = "O"
     return player_x, player_o
 
 
@@ -62,10 +69,15 @@ def initiate_game(player_x: Player, player_o: Player):
     players = [player_x, player_o]
     while not evaluator.is_done:
         print(f"Round: {rounds}")
-        for player in players:
+        for i in range(len(players)):
             valid_play = True
+            player = players[i]
             while valid_play:
-                valid_play = player.play(user_input("Position:\n "))
+                play = player.play()
+                check = game.check_validity(play["position"])
+                if check["is_valid"]:
+                    game.update_grid(check["position"], play["mark"])
+                valid_play = check["is_valid"]
             game.update_observers(game=game)
         rounds += 1
 
@@ -75,16 +87,17 @@ def generate_profile():
     Prompt the user to select a saved profile or select from a number of profiles
     :return: a list of two profiles
     """
+    user_m = UserDBMethods(orm_engine=engine)
     player_profiles = [None, None]
     for index in range(2):
         while player_profiles[index] is None:
             profile_mode = user_input(f"Player {index + 1}\nSelect Profile Mode: \n[1]: Create New Profile \n[2]: "
                                       f"Select a profile")
             if profile_mode == "1":
-                profile = create_new_profile()
-                player_profiles[index] = profile
+                player = create_new_profile(user_m)
+                player_profiles[index] = player
             elif profile_mode == "2":
-                profile = select_profile()
+                profile = select_profile(user_m)
                 player_profiles[index] = profile
             else:
                 print("Oops!!! \n It seems you have not made a valid choice. Input either (\"1\" or \"2\")")
